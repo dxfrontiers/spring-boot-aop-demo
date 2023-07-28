@@ -1,12 +1,9 @@
 package de.dxfrontiers.demo.spring.aop.domain.todo;
 
 import de.dxfrontiers.demo.spring.aop.adapter.analytics.AnalyticsInterface;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,12 +12,10 @@ import java.util.List;
 public class TodoService {
 
     private final TodoRepository todoRepository;
-    private final PlatformTransactionManager txManager;
     private final AnalyticsInterface analyticsInterface;
 
-    public TodoService(TodoRepository todoRepository, PlatformTransactionManager txManager, AnalyticsInterface analyticsInterface) {
+    public TodoService(TodoRepository todoRepository, AnalyticsInterface analyticsInterface) {
         this.todoRepository = todoRepository;
-        this.txManager = txManager;
         this.analyticsInterface = analyticsInterface;
     }
 
@@ -41,33 +36,14 @@ public class TodoService {
         return todoEntity;
     }
 
+    @Transactional
     public void markAsDone(long todoId) {
         LOG.trace("entering method markAsDone");
-        try {
-            DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
-            transactionDefinition.setName("markAsDoneTx-" + todoId);
-            transactionDefinition.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
-            TransactionStatus status = txManager.getTransaction(transactionDefinition);
-            try {
-                TodoEntity todoEntity = todoRepository.findById(todoId).orElseThrow(() -> new RuntimeException("Todo not found: " + todoId));
-                todoEntity.setDone(true);
-                todoRepository.save(todoEntity);
-            } catch (Exception e) {
-                LOG.warn("An SQL exception occurred", e);
-                try {
-                    txManager.rollback(status);
-                } catch (Exception transactionException) {
-                    LOG.trace("leaving method markAsDone");
-                    throw transactionException;
-                }
-                throw e;
-            }
-            txManager.commit(status);
-            analyticsInterface.triggerEvent("TodoMarkedAsDone");
-        }
-        finally {
-            LOG.trace("leaving method markAsDone");
-        }
+        TodoEntity todoEntity = todoRepository.findById(todoId).orElseThrow(() -> new RuntimeException("Todo not found: " + todoId));
+        todoEntity.setDone(true);
+        todoRepository.save(todoEntity);
+        analyticsInterface.triggerEvent("TodoMarkedAsDone");
+        LOG.trace("leaving method markAsDone");
     }
 
     public void deleteTodo(long todoId) {
