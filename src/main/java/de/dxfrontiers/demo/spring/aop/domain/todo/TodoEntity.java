@@ -1,6 +1,6 @@
 package de.dxfrontiers.demo.spring.aop.domain.todo;
 
-import de.dxfrontiers.demo.spring.aop.adapter.TodoInterface;
+import de.dxfrontiers.demo.spring.aop.adapter.web.TodoInterface;
 import jakarta.persistence.*;
 
 import java.util.Objects;

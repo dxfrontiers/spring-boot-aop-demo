@@ -1,4 +1,4 @@
-package de.dxfrontiers.demo.spring.aop.adapter;
+package de.dxfrontiers.demo.spring.aop.adapter.web;
 
 public interface TodoInterface {
     Long getId();

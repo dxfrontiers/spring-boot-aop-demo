@@ -1,4 +1,4 @@
-package de.dxfrontiers.demo.spring.aop.adapter;
+package de.dxfrontiers.demo.spring.aop.adapter.web;
 
 import de.dxfrontiers.demo.spring.aop.domain.todo.TodoService;
 import org.springframework.http.HttpStatus;

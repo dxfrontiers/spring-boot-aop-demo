@@ -1,5 +1,6 @@
 package de.dxfrontiers.demo.spring.aop.domain.todo;
 
+import de.dxfrontiers.demo.spring.aop.adapter.analytics.AnalyticsInterface;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -15,10 +16,12 @@ public class TodoService {
 
     private final TodoRepository todoRepository;
     private final PlatformTransactionManager txManager;
+    private final AnalyticsInterface analyticsInterface;
 
-    public TodoService(TodoRepository todoRepository, PlatformTransactionManager txManager) {
+    public TodoService(TodoRepository todoRepository, PlatformTransactionManager txManager, AnalyticsInterface analyticsInterface) {
         this.todoRepository = todoRepository;
         this.txManager = txManager;
+        this.analyticsInterface = analyticsInterface;
     }
 
     public Collection<TodoEntity> listTodos() {
@@ -33,6 +36,7 @@ public class TodoService {
         TodoEntity todoEntity = new TodoEntity();
         todoEntity.setTodo(todo);
         todoRepository.save(todoEntity);
+        analyticsInterface.triggerEvent("TodoCreated");
         LOG.trace("leaving method createTodo, returning: " + todoEntity);
         return todoEntity;
     }
@@ -59,6 +63,7 @@ public class TodoService {
                 throw e;
             }
             txManager.commit(status);
+            analyticsInterface.triggerEvent("TodoMarkedAsDone");
         }
         finally {
             LOG.trace("leaving method markAsDone");
@@ -68,6 +73,7 @@ public class TodoService {
     public void deleteTodo(long todoId) {
         LOG.trace("entering method deleteTodo");
         todoRepository.deleteById(todoId);
+        analyticsInterface.triggerEvent("TodoDeleted");
         LOG.trace("leaving method deleteTodo");
     }
 
