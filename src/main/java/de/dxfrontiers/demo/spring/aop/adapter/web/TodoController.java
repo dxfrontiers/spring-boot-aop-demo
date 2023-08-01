@@ -1,11 +1,13 @@
 package de.dxfrontiers.demo.spring.aop.adapter.web;
 
 import de.dxfrontiers.demo.spring.aop.domain.todo.TodoService;
+import de.dxfrontiers.demo.spring.aop.aspects.logging.Log;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 
+@Log
 @RestController
 @RequestMapping("/todo")
 public class TodoController {
