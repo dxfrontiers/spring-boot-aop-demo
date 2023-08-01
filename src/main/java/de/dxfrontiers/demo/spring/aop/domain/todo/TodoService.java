@@ -1,6 +1,6 @@
 package de.dxfrontiers.demo.spring.aop.domain.todo;
 
-import de.dxfrontiers.demo.spring.aop.adapter.analytics.AnalyticsInterface;
+import de.dxfrontiers.demo.spring.aop.aspects.analytics.AnalyticEvent;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
@@ -12,11 +12,9 @@ import java.util.List;
 public class TodoService {
 
     private final TodoRepository todoRepository;
-    private final AnalyticsInterface analyticsInterface;
 
-    public TodoService(TodoRepository todoRepository, AnalyticsInterface analyticsInterface) {
+    public TodoService(TodoRepository todoRepository) {
         this.todoRepository = todoRepository;
-        this.analyticsInterface = analyticsInterface;
     }
 
     public Collection<TodoEntity> listTodos() {
@@ -26,30 +24,30 @@ public class TodoService {
         return todos;
     }
 
+    @AnalyticEvent("TodoCreated")
     public TodoEntity createTodo(String todo) {
         LOG.trace("entering method createTodo");
         TodoEntity todoEntity = new TodoEntity();
         todoEntity.setTodo(todo);
         todoRepository.save(todoEntity);
-        analyticsInterface.triggerEvent("TodoCreated");
         LOG.trace("leaving method createTodo, returning: " + todoEntity);
         return todoEntity;
     }
 
+    @AnalyticEvent("TodoMarkedAsDone")
     @Transactional
     public void markAsDone(long todoId) {
         LOG.trace("entering method markAsDone");
         TodoEntity todoEntity = todoRepository.findById(todoId).orElseThrow(() -> new RuntimeException("Todo not found: " + todoId));
         todoEntity.setDone(true);
         todoRepository.save(todoEntity);
-        analyticsInterface.triggerEvent("TodoMarkedAsDone");
         LOG.trace("leaving method markAsDone");
     }
 
+    @AnalyticEvent("TodoDeleted")
     public void deleteTodo(long todoId) {
         LOG.trace("entering method deleteTodo");
         todoRepository.deleteById(todoId);
-        analyticsInterface.triggerEvent("TodoDeleted");
         LOG.trace("leaving method deleteTodo");
     }
 
